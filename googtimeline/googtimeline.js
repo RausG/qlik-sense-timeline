@@ -1,5 +1,6 @@
 // Hacked together aimlessly by Kai Hilton-Jones
 // Improved by Tim Payne
+// Improved by Florian Käfert - 2017-05-18
 
 require.config({
 	paths : {
@@ -10,20 +11,44 @@ require.config({
 	}
 });
 define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], function($) {'use strict';
+	
+	var palette = [
+			"#b0afae",
+			"#7b7a78",
+			"#545352",
+			"#4477aa",
+			"#7db8da",
+			"#b6d7ea",
+			"#46c646",
+			"#f93f17",
+			"#ffcf02",
+			"#276e27",
+			"#ffffff",
+			"#000000"
+		];
+
 	return {
 		initialProperties : {
-			version : 1.0,
+			version : 1.3,
 			qHyperCubeDef : {
 				qDimensions : [],
 				qMeasures : [],
 				qInitialDataFetch : [{
-					qWidth : 20,
-					qHeight : 400
+					qWidth : 5,
+					qHeight : 1000
 				}]
 			},
 			chartType : "timeline",
 			showRowLabels : true,
-			groupByRowLabel : false
+			showBarLabels : true,
+			tooltipIsHTML : false,
+			showTooltip : true,
+			groupByRowLabel : true,
+			colorByRowLabel : false,
+			useSingleColor : false,
+			useQlikColor : false,
+			reverseData : false,
+			useBackgroundColor : false
 		},
 		//property panel
 		definition : {
@@ -32,8 +57,13 @@ define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], f
 			items : {
 				dimensions : {
 					uses : "dimensions",
-					min : 3,
-					max : 4
+					min : 1,
+					max : 2
+				},
+				measures : {
+					uses : "measures",
+					min : 2,
+					max : 3
 				},
 				sorting : {
 					uses : "sorting"
@@ -42,119 +72,217 @@ define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], f
 					uses : "settings",
 					items : 
 					{
-						selection1 : 
-						{
-							type : "boolean",
-							component : "switch",
-							label : "Show Row Labels",
-							ref : "showRowLabels",
-							options : [{
-								value : true,
-								label : "On"
-							},{
-								value : false,
-								label : "Off"
-							}]
+						labels: {
+                            type: "items",
+                            label: "Labels",
+                            items: {
+								showRowLabels: {
+									type : "boolean",
+									component : "switch",
+									label : "Row Labels",
+									ref : "showRowLabels",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								},
+								showBarLabels: {
+									type : "boolean",
+									component : "switch",
+									label : "Bar Labels",
+									ref : "showBarLabels",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								}
+                            }
+                        },
+						tooltip: {
+                            type: "items",
+                            label: "Tooltip",
+                            items: {
+								showTooltip: {
+									type : "boolean",
+									component : "switch",
+									label : "Show Tooltip",
+									ref : "showTooltip",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
+								},
+								tooltipIsHTML: {
+									type : "boolean",
+									component : "switch",
+									label : "Tooltip is HTML",
+									ref : "tooltipIsHTML",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
+									show: function (e) { return e.qHyperCubeDef.qMeasures.length == 3 && e.showTooltip; }
+								}
+							}
 						},
-						selection2 : 
-						{
-							type : "boolean",
-							component : "switch",
-							label : "Group Row Label",
-							ref : "groupByRowLabel",
-							options : [{
-								value : true,
-								label : "On"
-							},{
-								value : false,
-								label : "Off"
-							}]
+						group: {
+                            type: "items",
+                            label: "Grouping",
+                            items: {
+								groupByRowLabel: {
+									type : "boolean",
+									component : "switch",
+									label : "Group by 1st Dimension",
+									ref : "groupByRowLabel",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								}
+							}
+						},
+						color: {
+                            type: "items",
+                            translation: "properties.color",
+                            items: {
+								useBackgroundColor: {
+									type : "boolean",
+									component : "switch",
+									label : "Background color",
+									ref : "useBackgroundColor",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
+								},
+								backgroundColor: {
+									component : "color-picker",
+									translation: "properties.color",
+									ref : "backgroundColor",
+									type: "integer",
+									defaultValue: '#ffffff',
+									show: function (e) { return e.useBackgroundColor }
+								},
+								useSingleColor: {
+									type : "boolean",
+									component : "switch",
+									label : "Single color",
+									ref : "useSingleColor",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								},
+								singleColor: {
+									component : "color-picker",
+									translation: "properties.color",
+									ref : "singleColor",
+									type: "integer",
+									defaultValue: '#46c646',
+									show: function (e) { return e.useSingleColor }
+								},
+								colorByRowLabel: {
+									type : "boolean",
+									component : "switch",
+									label : "Color by row label",
+									ref : "colorByRowLabel",
+									show: function (e) { return e.qHyperCubeDef.qDimensions.length > 1 && !e.useSingleColor; },
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								},
+								useQlikColor: {
+									type : "boolean",
+									component : "switch",
+									label : "Palette",
+									ref : "useQlikColor",
+									options : [{ value : true, label : "Qlik 10" },{ value : false, label : "Google" }],
+									show: function (e) { return !e.useSingleColor }
+								}
+							}
 						}
-
 					}
 				}
 			}
 		},
-		snapshot : {
-			canTakeSnapshot : true
+		support: {
+			snapshot: false,
+			export: false,
+			exportData: true
 		},
-
+		
 		paint : function($element, layout) {
-
-			var self = this, elemNos = [], dimCount = this.backendApi.getDimensionInfos().length;
+			
+			var self = this;
+			
+			var elemNos = [];
+			var dCnt = this.backendApi.getDimensionInfos().length;
+			var mCnt = this.backendApi.getMeasureInfos().length;
+			var rowCnt = this.backendApi.getRowCount();
+			
+			// Get DateFormat from Qlik
+			var dateFormat = this.backendApi.localeInfo.qDateFmt;
+			dateFormat = dateFormat.replace('DD', 'd');
+			dateFormat = dateFormat.replace('YYYY', 'y');
+			
+			// Build DataTable
 			var data = new google.visualization.DataTable();
-
-			data.addColumn({ type: 'string', id: 'Campaign' });
-			if(dimCount==4) {
-				data.addColumn({ type: 'string', id: 'Name' });
-			}
-        	data.addColumn({ type: 'date', id: 'Start' });
-        	data.addColumn({ type: 'date', id: 'End' });
-
-			this.backendApi.eachDataRow(function(key, row) {
+			
+			data.addColumn  ({ type: 'string', id: 'Label' });
+			if(dCnt == 2) { data.addColumn({ type: 'string', id: 'Name' }); };
+			if(mCnt == 3) { data.addColumn({ type: 'string', role: 'tooltip', p: {html: layout.tooltipIsHTML}}); };
+			data.addColumn  ({ type: 'date', id: 'Start' });
+        	data.addColumn  ({ type: 'date', id: 'End' });
+			
+			 // Copy Dimensions and Measures to DataTable
+			
+			this.backendApi.eachDataRow(function(rowNo, row) {
+				
 				var values = [];
-				row.forEach(function(cell, col) {
-					
-					//values.push(cell.qText);
-					if(dimCount==4) {
-						if(col<2)
-						{
-							values.push(cell.qText);
-						} else {
-							var myDate = new Date(cell.qText);
-							values.push(myDate);
-						}
-					} else {
-						if(col<1)
-						{
-							values.push(cell.qText);
-						} else {
-							var myDate = new Date(cell.qText);
-							values.push(myDate);
-						}
-					}
-					
-				});
+				var cellCnt = row.length;
+				
+				// Dim 1 - Row Label
+				values.push(row[0].qText);
+
+				// Dim 2 - Bar Label
+				if(dCnt == 2) { values.push(row[1].qText); };
+
+				// Mes 3 - Tooltip
+				if(mCnt == 3) { values.push(row[cellCnt - 1].qText); };
+
+				// Mes 1 - Start time
+				var start = new Date(row[dCnt].qText);
+				values.push(start);
+
+				// Mes 2 - End time
+				var end = new Date(row[dCnt + 1].qText);
+				values.push(end);
+				
+				// Add values to data
 				data.addRows([values]);
+				
 				//selections will always be on first dimension
 				elemNos.push(row[0].qElemNumber);
 			});
 			
-			var chart = new google.visualization.Timeline($element[0]);
-
-			//Instantiating and drawing the chart
-			//var chart = new google.visualization[layout.chartType]($element[0]);
-			chart.draw(data, {
-				chartArea : {
-					left : 20,
-					top : 20,
-					width : "100%",
-					height : "100%"
+			//Create options-object
+			var options = {
+				avoidOverlappingGridLines: true,
+				backgroundColor: (layout.useBackgroundColor) ? layout.backgroundColor.color : layout.backgroundColor.defaultValue,
+				colors: (layout.useQlikColor) ? palette : null,
+				enableInteractivity: true,
+				fontName: 'Arial',
+				fontSize: 'automatic',
+				timeline: {
+					barLabelStyle: {fontName: null, fontSize: null},
+					colorByRowLabel: layout.colorByRowLabel,
+					groupByRowLabel: layout.groupByRowLabel,
+					rowLabelStyle: {color: null, fontName: null, fontSize: null},
+					showBarLabels: layout.showBarLabels,
+					showRowLabels: layout.showRowLabels,
+					singleColor: (layout.useSingleColor) ? layout.singleColor.color : null,
 				},
-				timeline: { showRowLabels : layout.showRowLabels, 
-							groupByRowLabel : layout.groupByRowLabel,
-							singleColor: '#62AC1E',
-							colorByRowLabel: true,
-							rowLabelStyle: {fontName: 'Arial', fontSize: 13 } }
-			});
-			//selections
-			var selections = [];
-			var tim= [];
-			google.visualization.events.addListener(chart, 'select', function(e) {
-				var sel = chart.getSelection();
+				tooltip: {
+					isHtml: true,
+					trigger: (layout.showTooltip) ? 'focus' : 'none'
+				},
+				redrawTrigger : null
+			};
+			
+			//Instantiating and drawing the chart
+			var chart = new google.visualization.Timeline($element[0]);
+			chart.draw(data, options);
+			
+			//Selections
+			google.visualization.events.addListener(chart, 'select', selectHandler);
+			
+			//Handle Selections
+			function selectHandler(e) {
+				var selections = [];
+				var chartSel = chart.getSelection();
 				
-				tim=sel;
-				//sel.forEach(function(val) {
-					
-					selections[0]=elemNos[sel[0].row]
-					self.selectValues(0, selections, true);
-				//});
-				//chart.setSelection(tim);
-				//selections = selections.concat(sel);
-			});
-			//chart.setSelection([]);
-			//chart.setSelection(tim);
-
+				selections[0] = elemNos[chartSel[0].row];
+				self.selectValues(0, selections, true);
+			};
+			
+			return qlik.Promise.resolve();
 		}
 	};
 

@@ -1,9 +1,9 @@
 {
 	"name" : "Google Timeline",
 	"description" : "Google Timeline",
-	"icon" : "bar-chart-vertical",
+	"icon" : "bar-chart-horizontal",
 	"type" : "visualization",
-	"version": "1.0",
-	"preview" : "bar",
-	"author": "Kai Hilton-Jones"
+	"version": "1.3",
+	"preview" : "googtimeline.png",
+	"author": "Florian Käfert"
 }

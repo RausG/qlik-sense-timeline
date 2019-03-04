@@ -1,13 +1,10 @@
-_Please note that this extension is no longer being actively maintained by me. Please feel free to fork this repository, or [open an issue](https://github.com/kaihj/qlik-sense-timeline/issues/new) and ask me to transfer the ownership/maintainership of this project to you!_
-
 # [Qlik Sense](http://global.qlik.com/uk/explore/products/sense) Timeline Chart
 
-- GitHub URL: https://github.com/kaihj/qlik-sense-timeline
-- Qlik Branch URL: http://branch.qlik.com/#/project/56728f52d1e497241ae697ef
+- GitHub URL: https://github.com/SirGarnet/qlik-sense-timeline
 
 ## Screenshot
 
-![image](https://cloud.githubusercontent.com/assets/1283509/11930950/429d68f2-a7e0-11e5-87bd-11d620ec2400.png)
+![image](https://raw.githubusercontent.com/SirGarnet/qlik-sense-timeline/master/googtimeline/googtimeline.png)
 
 ## Overview
 
@@ -23,24 +20,37 @@ The Qlik Sense Timeline Chart leverages the [Google Chart API](https://developer
 
 ## Usage
 
-Use 3 or 4 dimensions (no measures):
+Dimensions:
+- Dimension 1 _(required)_: Main dimension and row label
+- Dimension 2 _(optional)_: Bar label
 
-- Dim 1 (required): Main dimension and row label
-- Dim 2 (optional): Bar label
-- Dim 3 (required): start date, format YYYY-MM-DD (ISO)
-- Dim 4 (required): end date, format YYYY-MM-DD (ISO)
-
-You currently need to ensure that all start and end dates exist. Dates will need to be converted to YYYY-MM-DD as required by the Google Chart API.
-
-Example configuration using three dimensions (without optional bar labels):
-
-![image](https://cloud.githubusercontent.com/assets/1283509/11930981/79d05c8a-a7e0-11e5-9742-4366ed0b76ee.png)
+Measures:
+- Measure 1 _(required)_: start date, format YYYY-MM-DD (ISO)
+- Measure 2 _(required)_: end date, format YYYY-MM-DD (ISO)
+- Measure 3 _(optional)_: Tooltip in plain text or HTML
 
 ## Custom settings:
 
-Additional parameters can be set to change the appearance of the chart:
+I've added some enxtensions after the fork of https://github.com/kaihj/qlik-sense-timeline/
 
-- Show row labels: shows or hides the row labels in column 1
-- Group row labels: groups labels with the same name into a single row
- 
-![image](https://cloud.githubusercontent.com/assets/1283509/11931005/aec12122-a7e0-11e5-9dc4-0d04514df426.png)
+### Labels
+
+- Show/hide row labels (Dim 1)
+- Show/hide bar labels (Dim 2) - _Shown if 2nd dimension exists_
+
+### Tooltip
+
+- Enable/disable tooltip
+- Parse tooltip as HTML / plain text - _Shown if 3rd meassure exists_
+
+### Grouping
+
+- Group bars by 1st dimension
+
+### Color
+
+- Background color with Qlik-Color-Picker
+- Set single color for all bars with Qlik-Color-Picker
+- Color by row label - _Shown if SingleColor is set to off_
+- Select between Google and Qlik palette - _Shown if SingleColor is set to off_
+
