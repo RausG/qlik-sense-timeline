@@ -31,7 +31,7 @@ Measures:
 
 ## Custom settings:
 
-I've added some enxtensions after the fork of https://github.com/kaihj/qlik-sense-timeline/
+I've added some extensions after the fork of https://github.com/kaihj/qlik-sense-timeline/
 
 ### Labels
 
