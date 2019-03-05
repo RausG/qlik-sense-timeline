@@ -48,7 +48,9 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 			useSingleColor : false,
 			useQlikColor : false,
 			reverseData : false,
-			useBackgroundColor : false
+			useBackgroundColor : false,
+			limitDataLoad : true,
+			loadAllRows : true
 		},
 		//property panel
 		definition : {
@@ -68,25 +70,57 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 				sorting : {
 					uses : "sorting"
 				},
+				// addons : {
+					// uses : "addons",
+					// items: {
+						// labels: {
+                            // type: "items",
+                            // translation: "properties.data",
+                            // items: {
+								// limitDataLoad: {
+									// type : "boolean",
+									// component : "switch",
+									// label : "Limit loaded data",
+									// ref : "limitDataLoad",
+									// options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								// },
+								// loadAllRows: {
+									// type : "boolean",
+									// component : "switch",
+									// label : "Load all rows",
+									// ref : "loadAllRows",
+									// options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
+									// show: function (e) { return !e.limitDataLoad; }
+								// },
+								// loadMaxRows: {
+									// type : "string",
+									// label : "Max loaded rows",
+									// defaultValue: 500,
+									// ref : "loadMaxRows",
+									// show: function (e) { return !e.limitDataLoad && !e.loadAllRows; }
+								// },
+                            // }
+						// }
+					// }
+				// },
 				settings : {
 					uses : "settings",
-					items : 
-					{
+					items : {
 						labels: {
                             type: "items",
-                            label: "Labels",
+							translation: "properties.labels",
                             items: {
 								showRowLabels: {
 									type : "boolean",
 									component : "switch",
-									label : "Row Labels",
+									label : "Row labels",
 									ref : "showRowLabels",
 									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
 								},
 								showBarLabels: {
 									type : "boolean",
 									component : "switch",
-									label : "Bar Labels",
+									label : "Bar labels",
 									ref : "showBarLabels",
 									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
 								}
@@ -94,7 +128,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
                         },
 						tooltip: {
                             type: "items",
-                            label: "Tooltip",
+							label: "Tooltip",
                             items: {
 								showTooltip: {
 									type : "boolean",
@@ -115,7 +149,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 						},
 						group: {
                             type: "items",
-                            label: "Grouping",
+                            translation: "Visualizations.Descriptions.Group",
                             items: {
 								groupByRowLabel: {
 									type : "boolean",
@@ -133,7 +167,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 								useBackgroundColor: {
 									type : "boolean",
 									component : "switch",
-									label : "Background color",
+									translation : "AppDetails.SheetBackgroundColor",
 									ref : "useBackgroundColor",
 									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
 								},
@@ -148,7 +182,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 								useSingleColor: {
 									type : "boolean",
 									component : "switch",
-									label : "Single color",
+									translation : "library.colors.onecolor",
 									ref : "useSingleColor",
 									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
 								},
@@ -163,7 +197,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 								colorByRowLabel: {
 									type : "boolean",
 									component : "switch",
-									label : "Color by row label",
+									translation : "properties.colorMode.byDimension",
 									ref : "colorByRowLabel",
 									show: function (e) { return e.qHyperCubeDef.qDimensions.length > 1 && !e.useSingleColor; },
 									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
@@ -227,11 +261,11 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 				if(mCnt == 3) { values.push(row[cellCnt - 1].qText); };
 
 				// Mes 1 - Start time
-				var start = moment(row[cellCnt - 2].qText, timestampFormat);
+				var start = moment(row[dCnt].qText, timestampFormat);
 				values.push(start.toDate());
 				
 				// Mes 2 - End time
-				var end = moment(row[cellCnt - 1].qText, timestampFormat);
+				var end = moment(row[dCnt + 1].qText, timestampFormat);
 				values.push(end.toDate());
 				
 				// Add values to data
