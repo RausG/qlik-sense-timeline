@@ -1,6 +1,7 @@
 # [Qlik Sense](http://global.qlik.com/uk/explore/products/sense) Timeline Chart
 
 - GitHub URL: https://github.com/SirGarnet/qlik-sense-timeline
+- Qlik Sense Garde: https://developer.qlik.com/garden/5c7d3eedcd73a200176e3e5f
 
 ## Screenshot
 
@@ -25,8 +26,8 @@ Dimensions:
 - Dimension 2 _(optional)_: Bar label
 
 Measures:
-- Measure 1 _(required)_: start date, format YYYY-MM-DD (ISO)
-- Measure 2 _(required)_: end date, format YYYY-MM-DD (ISO)
+- Measure 1 _(required)_: start date
+- Measure 2 _(required)_: end date
 - Measure 3 _(optional)_: Tooltip in plain text or HTML
 
 ## Custom settings:
@@ -57,6 +58,8 @@ I've added some extensions after the fork of https://github.com/kai/qlik-sense-t
 ## Advantages
 
 With this updated version it is possible to create colorful gantt charts in qlik sense. It is also possible to show the additional informations that you need in the HTML tooltip.
+
+Since Ver. 1.4 the [Moment.js](https://momentjs.com/) library is included, so the timestamps from Qlik Sense are converted to the format YYYY-MM-DD (ISO). Therefore the extension gets the set timestamp format from the running Qlik Sense app.
 
 ### Datatable
 
