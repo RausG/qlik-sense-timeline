@@ -10,7 +10,7 @@ require.config({
 		propertyParser : '/extensions/googtimeline/propertyParser',
 	}
 });
-define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], function($) {'use strict';
+define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,timeline]'], function($, moment) {'use strict';
 	
 	var palette = [
 			"#b0afae",
@@ -29,13 +29,13 @@ define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], f
 
 	return {
 		initialProperties : {
-			version : 1.3,
+			version : 1.4,
 			qHyperCubeDef : {
 				qDimensions : [],
 				qMeasures : [],
 				qInitialDataFetch : [{
 					qWidth : 5,
-					qHeight : 1000
+					qHeight : 500
 				}]
 			},
 			chartType : "timeline",
@@ -199,8 +199,7 @@ define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], f
 			
 			// Get DateFormat from Qlik
 			var dateFormat = this.backendApi.localeInfo.qDateFmt;
-			dateFormat = dateFormat.replace('DD', 'd');
-			dateFormat = dateFormat.replace('YYYY', 'y');
+			var timestampFormat = this.backendApi.localeInfo.qTimestampFmt;
 			
 			// Build DataTable
 			var data = new google.visualization.DataTable();
@@ -228,12 +227,12 @@ define(["jquery", 'goog!visualization,1,packages:[corechart,table,timeline]'], f
 				if(mCnt == 3) { values.push(row[cellCnt - 1].qText); };
 
 				// Mes 1 - Start time
-				var start = new Date(row[dCnt].qText);
-				values.push(start);
-
+				var start = moment(row[cellCnt - 2].qText, timestampFormat);
+				values.push(start.toDate());
+				
 				// Mes 2 - End time
-				var end = new Date(row[dCnt + 1].qText);
-				values.push(end);
+				var end = moment(row[cellCnt - 1].qText, timestampFormat);
+				values.push(end.toDate());
 				
 				// Add values to data
 				data.addRows([values]);
