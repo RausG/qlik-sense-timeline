@@ -84,7 +84,7 @@ It is also possible to add additional columns, but these are the basic columns t
 
 ### HTML Tooltip
 
-The HTML tooltip a powerful extension, that allows to show the information that is usefull for you dashbord. It s not possible to change the outer border design of the tooltip, only the content in the tooltip can be adapted.
+The HTML tooltip a powerful extension, that allows to show the information that is usefull for your dashbord. It s not possible to change the outer border design of the tooltip, only the content in the tooltip can be adapted.
 
 ![image](https://raw.githubusercontent.com/SirGarnet/qlik-sense-timeline/master/googtimeline/tooltip.png)
 
@@ -104,7 +104,7 @@ I personaly like to use the following design for the tootltip. Be patient there 
 '
 ```
 
-First there is the titel of the tooltip in a seperate ```<div>``` element. The used SubID is not in the string. So Qlik Sense gets the corresponding value from the field for the displayed bar.
+First there is the title of the tooltip in a seperate ```<div>``` element. The used SubID is not in the string. So Qlik Sense gets the corresponding value from the field for the displayed bar.
 
 ```html
 <div style="padding:5px;"><h1>' & SubID & '</h1></div>
