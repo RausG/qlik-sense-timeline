@@ -29,7 +29,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 
 	return {
 		initialProperties : {
-			version : 1.4,
+			version : 1.5,
 			qHyperCubeDef : {
 				qDimensions : [],
 				qMeasures : [],
@@ -50,7 +50,9 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 			reverseData : false,
 			useBackgroundColor : false,
 			limitDataLoad : true,
-			loadAllRows : true
+			loadAllRows : true,
+			handleNullAll : true,
+			handleNullPoint : true,
 		},
 		//property panel
 		definition : {
@@ -106,6 +108,27 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 				settings : {
 					uses : "settings",
 					items : {
+						nullhandling: {
+                            type: "items",
+							translation: "Null Value Handling",
+                            items: {
+								handleNullAll: {
+									type : "boolean",
+									component : "switch",
+									label : "Remove rows with NULL values",
+									ref : "handleNullAll",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								},
+								handleNullPoint: {
+									type : "boolean",
+									component : "switch",
+									label : "Point if start/end is NULL",
+									ref : "handleNullPoint",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
+									show: function (e) { return e.handleNullAll }
+								}
+                            },
+                        },
 						labels: {
                             type: "items",
 							translation: "properties.labels",
@@ -250,6 +273,24 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 				
 				var values = [];
 				var cellCnt = row.length;
+				var point = null;
+				
+				// Null value handling
+				if (layout.handleNullAll && !layout.handleNullPoint && row[dCnt].qText == '-') { return; };
+				
+				if (layout.handleNullAll && !layout.handleNullPoint && row[dCnt + 1].qText == '-') { return; };
+				
+				if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText == '-' && row[dCnt + 1].qText != '-') {
+					point = moment(row[dCnt + 1].qText, timestampFormat);
+				}
+				
+				if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText != '-' && row[dCnt + 1].qText == '-') {
+					point = moment(row[dCnt].qText, timestampFormat);
+				}
+				
+				if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText == '-' && row[dCnt + 1].qText == '-') {
+					return;
+				}
 				
 				// Dim 1 - Row Label
 				values.push(row[0].qText);
@@ -259,20 +300,22 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 
 				// Mes 3 - Tooltip
 				if(mCnt == 3) { values.push(row[cellCnt - 1].qText); };
-
+				
 				// Mes 1 - Start time
 				var start = moment(row[dCnt].qText, timestampFormat);
-				values.push(start.toDate());
+				values.push( (point != null) ? point.toDate() : start.toDate() );
 				
 				// Mes 2 - End time
 				var end = moment(row[dCnt + 1].qText, timestampFormat);
-				values.push(end.toDate());
+				values.push( (point != null) ? point.toDate() : end.toDate() );
 				
 				// Add values to data
 				data.addRows([values]);
 				
 				//selections will always be on first dimension
 				elemNos.push(row[0].qElemNumber);
+				
+				
 			});
 			
 			//Create options-object

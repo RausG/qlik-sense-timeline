@@ -34,6 +34,11 @@ Measures:
 
 I've added some extensions after the fork of https://github.com/kai/qlik-sense-timeline/
 
+### NULL Value Handling
+
+- Remove rows where start/end is NULL
+- Make a Point if start/end is NULL - _Shown if 'Remove rows where start/end is NULL' is active_
+
 ### Labels
 
 - Show/hide row labels (Dim 1)
