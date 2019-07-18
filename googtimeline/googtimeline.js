@@ -3,14 +3,15 @@
 // Improved by Florian Käfert - 2017-05-18
 
 require.config({
-	paths : {
+	paths: {
 		//create alias to plugins
 		async : '/extensions/googtimeline/async',
 		goog : '/extensions/googtimeline/goog',
 		propertyParser : '/extensions/googtimeline/propertyParser',
 	}
 });
-define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,timeline]'], function($, moment) {'use strict';
+
+define(["qlik", "jquery", "./lib/moment.min", 'goog!visualization,1,packages:[corechart,table,timeline]'], function(qlik, $, moment) {'use strict';
 	
 	var palette = [
 			"#b0afae",
@@ -29,7 +30,7 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 
 	return {
 		initialProperties : {
-			version : 1.5,
+			version : 1.6,
 			qHyperCubeDef : {
 				qDimensions : [],
 				qMeasures : [],
@@ -47,7 +48,6 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
 			colorByRowLabel : false,
 			useSingleColor : false,
 			useQlikColor : false,
-			reverseData : false,
 			useBackgroundColor : false,
 			limitDataLoad : true,
 			loadAllRows : true,
@@ -268,7 +268,6 @@ define(["jquery", "moment", 'goog!visualization,1,packages:[corechart,table,time
         	data.addColumn  ({ type: 'date', id: 'End' });
 			
 			 // Copy Dimensions and Measures to DataTable
-			
 			this.backendApi.eachDataRow(function(rowNo, row) {
 				
 				var values = [];

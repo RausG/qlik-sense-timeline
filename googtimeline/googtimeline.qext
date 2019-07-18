@@ -3,7 +3,7 @@
 	"description" : "Google Timeline",
 	"icon" : "bar-chart-horizontal",
 	"type" : "visualization",
-	"version": "1.5",
+	"version": "1.6",
 	"preview" : "googtimeline.png",
 	"author": "Florian Käfert"
 }
