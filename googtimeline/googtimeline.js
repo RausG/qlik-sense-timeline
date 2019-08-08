@@ -11,7 +11,7 @@ require.config({
 	}
 });
 
-define(["qlik", "jquery", "./lib/moment.min", 'goog!visualization,1,packages:[corechart,table,timeline]'], function(qlik, $, moment) {'use strict';
+define(["qlik", "jquery", "./lib/moment.min", 'qvangular', 'goog!visualization,1,packages:[corechart,table,timeline]'], function(qlik, $, moment, qvangular) {'use strict';
 	
 	var palette = [
 			"#b0afae",
@@ -30,15 +30,7 @@ define(["qlik", "jquery", "./lib/moment.min", 'goog!visualization,1,packages:[co
 
 	return {
 		initialProperties : {
-			version : 1.6,
-			qHyperCubeDef : {
-				qDimensions : [],
-				qMeasures : [],
-				qInitialDataFetch : [{
-					qWidth : 5,
-					qHeight : 500
-				}]
-			},
+			version : 1.7,
 			chartType : "timeline",
 			showRowLabels : true,
 			showBarLabels : true,
@@ -49,8 +41,7 @@ define(["qlik", "jquery", "./lib/moment.min", 'goog!visualization,1,packages:[co
 			useSingleColor : false,
 			useQlikColor : false,
 			useBackgroundColor : false,
-			limitDataLoad : true,
-			loadAllRows : true,
+			loadLimitedData : true,
 			handleNullAll : true,
 			handleNullPoint : true,
 		},
@@ -72,39 +63,33 @@ define(["qlik", "jquery", "./lib/moment.min", 'goog!visualization,1,packages:[co
 				sorting : {
 					uses : "sorting"
 				},
-				// addons : {
-					// uses : "addons",
-					// items: {
-						// labels: {
-                            // type: "items",
-                            // translation: "properties.data",
-                            // items: {
-								// limitDataLoad: {
-									// type : "boolean",
-									// component : "switch",
-									// label : "Limit loaded data",
-									// ref : "limitDataLoad",
-									// options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
-								// },
-								// loadAllRows: {
-									// type : "boolean",
-									// component : "switch",
-									// label : "Load all rows",
-									// ref : "loadAllRows",
-									// options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }],
-									// show: function (e) { return !e.limitDataLoad; }
-								// },
-								// loadMaxRows: {
-									// type : "string",
-									// label : "Max loaded rows",
-									// defaultValue: 500,
-									// ref : "loadMaxRows",
-									// show: function (e) { return !e.limitDataLoad && !e.loadAllRows; }
-								// },
-                            // }
-						// }
-					// }
-				// },
+				addons : {
+					uses : "addons",
+					items: {
+						labels: {
+                            type: "items",
+                            translation: "properties.data",
+                            items: {
+								loadLimitedData: {
+									type : "boolean",
+									component : "switch",
+									label : "Limit loaded data [500 rows]",
+									ref : "loadLimitedData",
+									options : [{ value : true, translation : "properties.on" },{ value : false, translation : "properties.off" }]
+								},
+								loadNumRows: {
+									type : "integer",
+									label : "Max loaded rows [1 - 10000]",
+									defaultValue: 500,
+									min: 1,
+									max: 10000,
+									ref : "loadNumRows",
+									show: function (e) { return !e.loadLimitedData; }
+								}
+                            }
+						}
+					}
+				},
 				settings : {
 					uses : "settings",
 					items : {
@@ -241,123 +226,175 @@ define(["qlik", "jquery", "./lib/moment.min", 'goog!visualization,1,packages:[co
 		},
 		support: {
 			snapshot: false,
-			export: false,
+			export: true,
 			exportData: true
 		},
 		
 		paint : function($element, layout) {
 			
+			// clear element
+			$element.empty();
+			
 			var self = this;
 			
+			this.backendApi.cacheCube.enabled = false;
+			
+			var columns = layout.qHyperCube.qSize.qcx;
+			var totalheight = layout.qHyperCube.qSize.qcy;
+			
+			// Load limited Data
+			if (layout.loadLimitedData) {
+				totalheight = 500;
+			} else {
+				totalheight = JSON.parse(layout.loadNumRows);
+			};
+			
+			var pageheight = Math.floor(10000 / columns);
+			var numberOfPages = Math.ceil(totalheight / pageheight);
+			
+			var Promise = qvangular.getService('$q');
+			
+			var promises = Array.apply(null, Array(numberOfPages)).map(function(data, index) {
+				var page = {
+					qTop: (pageheight * index) + index,
+					qLeft: 0,
+					qWidth: columns,
+					qHeight: pageheight
+				};
+				
+				return this.backendApi.getData([page]);
+				
+			}, this)
+			
 			var elemNos = [];
+			var rowCnt = 0;
+			var readRow = true;
+			
+			// Get dimension and measure info
 			var dCnt = this.backendApi.getDimensionInfos().length;
 			var mCnt = this.backendApi.getMeasureInfos().length;
-			var rowCnt = this.backendApi.getRowCount();
 			
 			// Get DateFormat from Qlik
 			var dateFormat = this.backendApi.localeInfo.qDateFmt;
 			var timestampFormat = this.backendApi.localeInfo.qTimestampFmt;
 			
-			// Build DataTable
-			var data = new google.visualization.DataTable();
+			// Get basic DataTable
+			var result = new google.visualization.DataTable();
 			
-			data.addColumn  ({ type: 'string', id: 'Label' });
-			if(dCnt == 2) { data.addColumn({ type: 'string', id: 'Name' }); };
-			if(mCnt == 3) { data.addColumn({ type: 'string', role: 'tooltip', p: {html: layout.tooltipIsHTML}}); };
-			data.addColumn  ({ type: 'date', id: 'Start' });
-        	data.addColumn  ({ type: 'date', id: 'End' });
+			result.addColumn  ({ type: 'string', id: 'Label' });
+			if(dCnt == 2) { result.addColumn({ type: 'string', id: 'Name' }); };
+			if(mCnt == 3) { result.addColumn({ type: 'string', role: 'tooltip', p: {html: layout.tooltipIsHTML}}); };
+			result.addColumn  ({ type: 'date', id: 'Start' });
+			result.addColumn  ({ type: 'date', id: 'End' });
 			
-			 // Copy Dimensions and Measures to DataTable
-			this.backendApi.eachDataRow(function(rowNo, row) {
-				
-				var values = [];
-				var cellCnt = row.length;
-				var point = null;
-				
-				// Null value handling
-				if (layout.handleNullAll && !layout.handleNullPoint && row[dCnt].qText == '-') { return; };
-				
-				if (layout.handleNullAll && !layout.handleNullPoint && row[dCnt + 1].qText == '-') { return; };
-				
-				if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText == '-' && row[dCnt + 1].qText != '-') {
-					point = moment(row[dCnt + 1].qText, timestampFormat);
-				}
-				
-				if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText != '-' && row[dCnt + 1].qText == '-') {
-					point = moment(row[dCnt].qText, timestampFormat);
-				}
-				
-				if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText == '-' && row[dCnt + 1].qText == '-') {
-					return;
-				}
-				
-				// Dim 1 - Row Label
-				values.push(row[0].qText);
-
-				// Dim 2 - Bar Label
-				if(dCnt == 2) { values.push(row[1].qText); };
-
-				// Mes 3 - Tooltip
-				if(mCnt == 3) { values.push(row[cellCnt - 1].qText); };
-				
-				// Mes 1 - Start time
-				var start = moment(row[dCnt].qText, timestampFormat);
-				values.push( (point != null) ? point.toDate() : start.toDate() );
-				
-				// Mes 2 - End time
-				var end = moment(row[dCnt + 1].qText, timestampFormat);
-				values.push( (point != null) ? point.toDate() : end.toDate() );
-				
-				// Add values to data
-				data.addRows([values]);
-				
-				//selections will always be on first dimension
-				elemNos.push(row[0].qElemNumber);
-				
-				
+			// Start rendering
+			Promise.all(promises).then(function(data) {
+				render(data);
 			});
 			
-			//Create options-object
-			var options = {
-				avoidOverlappingGridLines: true,
-				backgroundColor: (layout.useBackgroundColor) ? layout.backgroundColor.color : layout.backgroundColor.defaultValue,
-				colors: (layout.useQlikColor) ? palette : null,
-				enableInteractivity: true,
-				fontName: 'Arial',
-				fontSize: 'automatic',
-				timeline: {
-					barLabelStyle: {fontName: null, fontSize: null},
-					colorByRowLabel: layout.colorByRowLabel,
-					groupByRowLabel: layout.groupByRowLabel,
-					rowLabelStyle: {color: null, fontName: null, fontSize: null},
-					showBarLabels: layout.showBarLabels,
-					showRowLabels: layout.showRowLabels,
-					singleColor: (layout.useSingleColor) ? layout.singleColor.color : null,
-				},
-				tooltip: {
-					isHtml: true,
-					trigger: (layout.showTooltip) ? 'focus' : 'none'
-				},
-				redrawTrigger : null
-			};
-			
-			//Instantiating and drawing the chart
-			var chart = new google.visualization.Timeline($element[0]);
-			chart.draw(data, options);
-			
-			//Selections
-			google.visualization.events.addListener(chart, 'select', selectHandler);
-			
-			//Handle Selections
-			function selectHandler(e) {
-				var selections = [];
-				var chartSel = chart.getSelection();
+			function render(data) {
 				
-				selections[0] = elemNos[chartSel[0].row];
-				self.selectValues(0, selections, true);
+				 // Copy Dimensions and Measures to DataTable
+				 
+				 // Loop over pages
+				 data.forEach(function(page, pageNo){
+					 
+					// Loop over rows
+					page[0].qMatrix.forEach(function(row, rowNo) {
+						
+						if (readRow) {
+							
+							var values = [];
+							var cellCnt = row.length;
+							var point = null;
+							
+							// Null value handling
+							if (layout.handleNullAll && !layout.handleNullPoint && row[dCnt].qText == '-') { return; };
+							
+							if (layout.handleNullAll && !layout.handleNullPoint && row[dCnt + 1].qText == '-') { return; };
+							
+							if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText == '-' && row[dCnt + 1].qText != '-') {
+								point = moment(row[dCnt + 1].qText, timestampFormat);
+							};
+							
+							if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText != '-' && row[dCnt + 1].qText == '-') {
+								point = moment(row[dCnt].qText, timestampFormat);
+							};
+							
+							if (layout.handleNullAll && layout.handleNullPoint && row[dCnt].qText == '-' && row[dCnt + 1].qText == '-') {
+								return;
+							};
+							
+							// Dim 1 - Row Label
+							values.push(row[0].qText);
+							
+							// Dim 2 - Bar Label
+							if(dCnt == 2) { values.push(row[1].qText); };
+							
+							// Mes 3 - Tooltip
+							if(mCnt == 3) { values.push(row[cellCnt - 1].qText); };
+							
+							// Mes 1 - Start time
+							var start = moment(row[dCnt].qText, timestampFormat);
+							values.push( (point != null) ? point.toDate() : start.toDate() );
+							// Mes 2 - End time
+							var end = moment(row[dCnt + 1].qText, timestampFormat);
+							values.push( (point != null) ? point.toDate() : end.toDate() );
+							
+							// Add values to result
+							result.addRows([values]);
+							
+							//selections will always be on first dimension
+							elemNos.push(row[0].qElemNumber);
+						};
+					});
+				});
+				
+				//Create options-object
+				var options = {
+					avoidOverlappingGridLines: true,
+					backgroundColor: (layout.useBackgroundColor) ? layout.backgroundColor.color : layout.backgroundColor.defaultValue,
+					colors: (layout.useQlikColor) ? palette : null,
+					enableInteractivity: true,
+					fontName: 'Arial',
+					fontSize: 'automatic',
+					timeline: {
+						barLabelStyle: {fontName: null, fontSize: null},
+						colorByRowLabel: layout.colorByRowLabel,
+						groupByRowLabel: layout.groupByRowLabel,
+						rowLabelStyle: {color: null, fontName: null, fontSize: null},
+						showBarLabels: layout.showBarLabels,
+						showRowLabels: layout.showRowLabels,
+						singleColor: (layout.useSingleColor) ? layout.singleColor.color : null,
+					},
+					tooltip: {
+						isHtml: true,
+						trigger: (layout.showTooltip) ? 'focus' : 'none'
+					},
+					redrawTrigger : null
+				};
+				
+				//Instantiating and drawing the chart
+				var chart = new google.visualization.Timeline($element[0]);
+				chart.draw(result, options);
+				
+				//Selections
+				google.visualization.events.addListener(chart, 'select', selectHandler);
+				
+				//Handle Selections
+				function selectHandler(e) {
+					var selections = [];
+					var chartSel = chart.getSelection();
+					
+					selections[0] = elemNos[chartSel[0].row];
+					self.selectValues(0, selections, true);
+				};
+				
+				// Row Count
+				console.log(rowCnt);
+				
+				return qlik.Promise.resolve();
 			};
-			
-			return qlik.Promise.resolve();
 		}
 	};
 

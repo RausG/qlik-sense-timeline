@@ -34,6 +34,13 @@ Measures:
 
 I've added some extensions after the fork of https://github.com/kai/qlik-sense-timeline/
 
+### Addons
+
+#### Data
+
+- Limited data load [500 rows] - _Initial: active_
+- Load number of rows - _Shown if 'Limited data load' is off_
+
 ### NULL Value Handling
 
 - Remove rows where start/end is NULL
@@ -147,3 +154,18 @@ The last line shows the resulting time for the bar in hours, minutes and seconds
 <b>Duration:	</b>' & Hour(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' h ' & Minute(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' m ' & Second(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' s
 ```
 
+## Sources
+
+- GitHub URL: https://github.com/SirGarnet/qlik-sense-timeline
+- Forked from: https://github.com/kai/qlik-sense-timeline/
+- Qlik Sense Garden: https://developer.qlik.com/garden/5c7d3eedcd73a200176e3e5f
+
+## Licenses
+
+[MIT License](https://github.com/SirGarnet/qlik-sense-timeline/blob/master/LICENSE)
+
+## Future roadmap
+
+- Color by Dimension like Qlik Sense
+- Include color and font for bar labels
+- Include color and font for row labels
