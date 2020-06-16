@@ -1,7 +1,11 @@
 # [Qlik Sense](http://global.qlik.com/uk/explore/products/sense) Timeline Chart
 
 - GitHub URL: https://github.com/SirGarnet/qlik-sense-timeline
-- Qlik Sense Garde: https://developer.qlik.com/garden/5c7d3eedcd73a200176e3e5f
+- Qlik Sense Garden: https://developer.qlik.com/garden/5c7d3eedcd73a200176e3e5f
+
+## ANNOUNCEMENT
+
+I'll recreate the whole extension at the current time, to make it more robust and faster. This should also fix some errors that occured in the last weeks with the Qlik Server. So stay tuned for updates.
 
 ## Screenshot
 
