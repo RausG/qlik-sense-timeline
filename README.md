@@ -5,7 +5,7 @@
 
 ## ANNOUNCEMENT
 
-I'll recreate the whole extension at the current time, to make it more robust and faster. This should also fix some errors that occured in the last weeks with the Qlik Server. So stay tuned for updates.
+Redesign finished version 1.8 is available. Happy for some testers and feedback.
 
 ## Screenshot
 
@@ -157,6 +157,10 @@ The last line shows the resulting time for the bar in hours, minutes and seconds
 ```html
 <b>Duration:	</b>' & Hour(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' h ' & Minute(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' m ' & Second(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' s
 ```
+
+## SaaS Users
+
+See #4 for detailed rules. The extension uses since version 1.8 only https://www.gstatic.com - Happy for some feedback on the correct rule definition.
 
 ## Sources
 
