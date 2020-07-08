@@ -28,6 +28,7 @@ The Qlik Sense Timeline Chart leverages the [Google Chart API](https://developer
 Dimensions:
 - Dimension 1 _(required)_: Main dimension and row label
 - Dimension 2 _(optional)_: Bar label
+- Dimension 3 _(optional)_: Color for Timeline
 
 Measures:
 - Measure 1 _(required)_: start date
@@ -70,6 +71,7 @@ I've added some extensions after the fork of https://github.com/kai/qlik-sense-t
 - Set single color for all bars with Qlik-Color-Picker
 - Color by row label - _Shown if SingleColor is set to off_
 - Select between Google and Qlik palette - _Shown if SingleColor is set to off_
+- Color by third Dimension
 
 ## Advantages
 
