@@ -157,6 +157,14 @@ The last line shows the resulting time for the bar in hours, minutes and seconds
 ```html
 <b>Duration:	</b>' & Hour(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' h ' & Minute(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' m ' & Second(Timestamp(Max(End)) - Timestamp(Min(Start))) & ' s
 ```
+## Third Dimension for Coloring
+I added a switch to the original project to activate that you can colorize the Timelines by colorcodes in a Third Dimension
+
+Example:
+
+if(Dimension1 = 'This', red(),blue())
+
+or by a colorcode in a Column of your Loadskript.
 
 ## SaaS Users
 
